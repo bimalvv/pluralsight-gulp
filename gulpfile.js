@@ -25,8 +25,9 @@ gulp.task('styles', ['clean-styles'], function () {
 
 	return gulp
 		.src(config.less)
+		.pipe($.plumber())
 		.pipe($.less())
-		.on('error', errorLogger)
+		//.on('error', errorLogger)
 		.pipe($.autoprefixer({
 			browsers: ['last 2 version', '> 5%']
 		}))
@@ -50,7 +51,7 @@ function errorLogger(error){
 }
 
 function clean(path, done) {
-	log('Cleaning: ' + $.util.colors.red(path));
+	log('Cleaning: ' + $.util.colors.blue(path));
 	del(path, done);
 }
 
