@@ -126,14 +126,19 @@ gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
 		.pipe(gulp.dest(config.client));
 });
 
-gulp.task('optimize', ['inject'], function() {
+gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
 	log('Optimizing the javascript, css, html.');
 
+	/* Parse build blocks in HTML files to
+	   replace references to non-optimized
+	   scripts or stylesheets.  */
 	var assets = $.useref.assets({
 		searchPath: './'
 	});
 
 	var templateCache = config.temp + config.templateCache.file;
+	var cssFilter = $.filter('**/*.css');
+	var jsFilter = $.filter('**/*.js');
 
 	return gulp.src(config.index)
 		.pipe($.plumber())
@@ -143,6 +148,16 @@ gulp.task('optimize', ['inject'], function() {
 			starttag: '<!-- inject:templates:js -->'
 		}))
 		.pipe(assets)
+		/* Filter down to css */
+		.pipe(cssFilter)
+		/* CSS Optimize */
+		.pipe($.csso())
+		.pipe(cssFilter.restore())
+		.pipe(jsFilter)
+		.pipe($.uglify())
+		.pipe(jsFilter.restore())
+		/* Brings back the previously
+		   filtered out HTML files. */
 		.pipe(assets.restore())
 		.pipe($.useref())
 		.pipe(gulp.dest(config.build));
@@ -240,12 +255,12 @@ function startBrowserSync(isDev) {
 	browserSync(options);
 }
 
-function errorLogger(error) {
-	log('*** Start of Error ***');
-	log(error);
-	log('*** End of Error ***');
-	this.emit('end');
-}
+//function errorLogger(error) {
+//	log('*** Start of Error ***');
+//	log(error);
+//	log('*** End of Error ***');
+//	this.emit('end');
+//}
 
 function clean(path, done) {
 	log('Cleaning: ' + $.util.colors.blue(path));
