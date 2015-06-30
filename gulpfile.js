@@ -138,7 +138,10 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
 
 	var templateCache = config.temp + config.templateCache.file;
 	var cssFilter = $.filter('**/*.css');
-	var jsFilter = $.filter('**/*.js');
+	/* Vendor files */
+	var jsLibFilter = $.filter('**/' + config.optimized.lib);
+	/* Custom files */
+	var jsAppFilter = $.filter('**/' + config.optimized.app);
 
 	return gulp.src(config.index)
 		.pipe($.plumber())
@@ -153,9 +156,13 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
 		/* CSS Optimize */
 		.pipe($.csso())
 		.pipe(cssFilter.restore())
-		.pipe(jsFilter)
+		.pipe(jsLibFilter)
 		.pipe($.uglify())
-		.pipe(jsFilter.restore())
+		.pipe(jsLibFilter.restore())
+		.pipe(jsAppFilter)
+		.pipe($.ngAnnotate())
+		.pipe($.uglify())
+		.pipe(jsAppFilter.restore())
 		/* Brings back the previously
 		   filtered out HTML files. */
 		.pipe(assets.restore())
